@@ -1,1 +1,0 @@
-# germanzvezdinportfolio.github.io
