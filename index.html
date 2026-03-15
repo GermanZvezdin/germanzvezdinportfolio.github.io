@@ -1,81 +1,547 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>German Zvezdin | Portfolio</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>German Zvezdin — Render Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3ef;
+      --bg2:    #ffffff;
+      --bg3:    #ede9e3;
+      --orange: #e8620a;
+      --orange2:#c4510a;
+      --text:   #1a1714;
+      --muted:  #7a7068;
+      --border: rgba(232,98,10,.15);
+      --border2:#e4ddd6;
+      --mono:   'JetBrains Mono', monospace;
+      --serif:  'Crimson Pro', Georgia, serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--serif); font-size: 1.05rem; line-height: 1.7;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(232,98,10,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,98,10,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .85rem 3rem;
+      background: rgba(245,243,239,.92); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border2);
+    }
+    .nav-logo { font-family: var(--mono); font-size: .82rem; color: var(--orange); letter-spacing: .14em; text-decoration: none; font-weight: 700; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { font-family: var(--mono); font-size: .75rem; color: var(--muted); text-decoration: none; letter-spacing: .1em; text-transform: uppercase; transition: color .2s; }
+    .nav-links a:hover { color: var(--orange); }
+
+    /* HERO */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 8rem 0 4rem; overflow: hidden;
+    }
+    .hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; padding: 0 3rem; position: relative; z-index: 1; }
+    .glow { position: absolute; border-radius: 50%; filter: blur(140px); pointer-events: none; }
+    .g1 { width: 500px; height: 500px; background: rgba(232,98,10,.09); top: -60px; right: -40px; animation: d1 13s ease-in-out infinite; }
+    .g2 { width: 350px; height: 350px; background: rgba(232,98,10,.06); bottom: 40px; left: 6%; animation: d2 16s ease-in-out infinite; }
+    @keyframes d1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-24px,32px)} }
+    @keyframes d2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(16px,-24px)} }
+
+    .h-tag { font-family: var(--mono); font-size: .73rem; color: var(--orange); letter-spacing: .22em; text-transform: uppercase; margin-bottom: 1.1rem; opacity:0; animation: fu .6s .1s forwards; }
+    .h-tag::before { content: '// '; opacity: .4; }
+    h1.h-name { font-family: var(--mono); font-size: clamp(2.6rem,5.5vw,5rem); font-weight: 700; line-height: 1.05; color: var(--text); opacity:0; animation: fu .7s .2s forwards; }
+    h1.h-name span { color: var(--orange); }
+    .h-role { margin-top: .9rem; font-family: var(--serif); font-size: 1.25rem; font-style: italic; color: var(--muted); opacity:0; animation: fu .7s .33s forwards; }
+    .h-desc { max-width: 580px; margin-top: 1.5rem; font-size: 1.02rem; color: var(--text); line-height: 1.8; opacity:0; animation: fu .7s .48s forwards; }
+    .h-btns { display: flex; gap: 1rem; margin-top: 2.2rem; flex-wrap: wrap; opacity:0; animation: fu .7s .63s forwards; }
+    .btn { font-family: var(--mono); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; padding: .65rem 1.4rem; border-radius: 2px; text-decoration: none; transition: all .2s; }
+    .btn-p { background: var(--orange); color: #fff; }
+    .btn-p:hover { background: var(--orange2); box-shadow: 0 4px 20px rgba(232,98,10,.3); }
+    .btn-g { border: 1px solid var(--border2); color: var(--text); }
+    .btn-g:hover { border-color: var(--orange); color: var(--orange); }
+    .h-stats { display: flex; gap: 3rem; margin-top: 3.8rem; padding-top: 1.8rem; border-top: 1px solid var(--border2); flex-wrap: wrap; opacity:0; animation: fu .7s .78s forwards; }
+    .stat-n { font-family: var(--mono); font-size: 1.9rem; font-weight: 700; color: var(--orange); line-height: 1.1; }
+    .stat-l { font-size: .75rem; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; margin-top: .15rem; }
+    @keyframes fu { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+
+    /* SECTIONS */
+    .sw { position: relative; z-index: 1; padding: 6rem 3rem; max-width: 1100px; margin: 0 auto; }
+    .s-label { font-family: var(--mono); font-size: .7rem; color: var(--orange); text-transform: uppercase; letter-spacing: .25em; margin-bottom: .5rem; }
+    .s-label::before { content: attr(data-n) ' // '; opacity: .38; }
+    h2.s-title { font-family: var(--mono); font-size: clamp(1.5rem,2.8vw,2.2rem); font-weight: 700; color: var(--text); margin-bottom: 2.4rem; border-left: 3px solid var(--orange); padding-left: 1rem; }
+    hr.div { border: none; border-top: 1px solid var(--border2); margin: 0; }
+
+    /* ABOUT */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .a-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; padding: 1.7rem; transition: border-color .2s, box-shadow .2s; }
+    .a-card:hover { border-color: rgba(232,98,10,.4); box-shadow: 0 4px 20px rgba(232,98,10,.08); }
+    .a-icon { font-size: 1.5rem; margin-bottom: .7rem; }
+    .a-card h3 { font-family: var(--mono); font-size: .88rem; color: var(--orange); margin-bottom: .45rem; letter-spacing: .05em; }
+    .a-card p { font-size: .95rem; color: var(--muted); line-height: 1.75; }
+
+    /* EDUCATION */
+    .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .edu-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; padding: 1.7rem; transition: border-color .2s; }
+    .edu-card:hover { border-color: rgba(232,98,10,.35); }
+    .edu-date { font-family: var(--mono); font-size: .7rem; color: var(--orange); letter-spacing: .1em; margin-bottom: .5rem; }
+    .edu-school { font-family: var(--mono); font-size: .95rem; color: var(--text); font-weight: 700; margin-bottom: .2rem; }
+    .edu-field { font-family: var(--serif); font-style: italic; font-size: 1rem; color: var(--orange); margin-bottom: .6rem; }
+    .edu-gpa { font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+
+    /* TIMELINE */
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before { content:''; position:absolute; left:0; top:0; bottom:0; width:1px; background:var(--border2); }
+    .tl { position: relative; margin-bottom: 2.6rem; padding-left: 1.5rem; }
+    .tl-dot { position:absolute; left:-2rem; top:.4rem; width:9px; height:9px; border-radius:50%; background:var(--bg); border:2px solid var(--orange); box-shadow:0 0 8px rgba(232,98,10,.3); }
+    .tl-date { font-family:var(--mono); font-size:.7rem; color:var(--orange); letter-spacing:.1em; margin-bottom:.25rem; }
+    .tl-title { font-family:var(--mono); font-size:.97rem; color:var(--text); font-weight:700; }
+    .tl-co { font-family:var(--mono); font-size:.8rem; color:var(--orange); margin-bottom:.55rem; }
+    .tl-desc { font-size:.95rem; color:var(--muted); line-height:1.75; }
+    .tl-tags { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.65rem; }
+    .tag { font-family:var(--mono); font-size:.65rem; letter-spacing:.06em; padding:.18rem .55rem; border:1px solid var(--border2); border-radius:2px; color:var(--muted); background: var(--bg); }
+
+    /* LI CARDS */
+    .li-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; }
+    .li-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1rem; text-decoration: none; transition: border-color .2s, box-shadow .2s, transform .18s; }
+    .li-card:hover { border-color: rgba(232,98,10,.4); box-shadow: 0 4px 20px rgba(232,98,10,.08); transform: translateY(-2px); }
+    .li-tag { font-family:var(--mono); font-size:.68rem; color:var(--orange); letter-spacing:.12em; text-transform:uppercase; }
+    .li-card h3 { font-family:var(--mono); font-size:.95rem; color:var(--text); line-height:1.4; }
+    .li-card p { font-size:.93rem; color:var(--muted); line-height:1.75; flex:1; }
+    .li-chips { display:flex; flex-wrap:wrap; gap:.35rem; }
+    .li-chip { font-family:var(--mono); font-size:.63rem; padding:.18rem .5rem; border:1px solid var(--border2); border-radius:2px; color:var(--muted); background:var(--bg); }
+    .li-foot { display:flex; justify-content:space-between; align-items:center; padding-top:.9rem; border-top:1px solid var(--border2); }
+    .li-lbl { font-family:var(--mono); font-size:.7rem; color:var(--muted); }
+    .li-arr { color:var(--orange); transition:transform .2s; }
+    .li-card:hover .li-arr { transform:translate(3px,-3px); }
+
+    /* SHADERS */
+    .shaders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
+    .sh-card { background:var(--bg2); border:1px solid var(--border2); border-radius:4px; overflow:hidden; transition: border-color .2s, box-shadow .2s, transform .18s; }
+    .sh-card:hover { border-color:rgba(232,98,10,.4); box-shadow:0 4px 20px rgba(232,98,10,.08); transform:translateY(-2px); }
+    .sh-prev { position:relative; height:210px; overflow:hidden; display:flex; align-items:center; justify-content:center; background: var(--bg3); }
+    .sh-bg { position:absolute; inset:0; }
+    .bg-a { background: radial-gradient(ellipse at 35% 45%, rgba(232,98,10,.18) 0%, transparent 55%), radial-gradient(ellipse at 68% 58%, rgba(232,98,10,.08) 0%, transparent 50%); }
+    .bg-b { background: radial-gradient(ellipse at 50% 50%, rgba(232,98,10,.2) 0%, transparent 60%); }
+    .bg-c { background: radial-gradient(ellipse at 38% 60%, rgba(196,81,10,.15) 0%, transparent 50%), radial-gradient(ellipse at 62% 38%, rgba(232,98,10,.1) 0%, transparent 48%); }
+    .bg-d { background: radial-gradient(ellipse at 50% 32%, rgba(232,98,10,.16) 0%, transparent 55%), radial-gradient(ellipse at 50% 68%, rgba(196,81,10,.1) 0%, transparent 48%); }
+    .sh-sym { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:5rem; color:rgba(232,98,10,.08); font-weight:700; user-select:none; z-index:1; }
+    .sh-play { position:relative; z-index:2; width:52px; height:52px; border-radius:50%; background:rgba(232,98,10,.12); border:1.5px solid var(--orange); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:var(--orange); backdrop-filter:blur(4px); transition: background .2s, transform .2s; }
+    .sh-card:hover .sh-play { background:rgba(232,98,10,.22); transform:scale(1.07); }
+    .sh-url { position:absolute; bottom:.65rem; left:.75rem; z-index:2; font-family:var(--mono); font-size:.6rem; color:var(--muted); background:rgba(245,243,239,.85); padding:.18rem .5rem; border-radius:2px; }
+    .sh-body { padding:1.2rem 1.4rem; }
+    .sh-num { font-family:var(--mono); font-size:.63rem; color:var(--muted); letter-spacing:.14em; margin-bottom:.28rem; }
+    .sh-title { font-family:var(--mono); font-size:.93rem; color:var(--text); font-weight:700; margin-bottom:.55rem; }
+    .sh-desc { font-size:.88rem; color:var(--muted); line-height:1.7; margin-bottom:.85rem; }
+    .sh-link { display:inline-flex; align-items:center; gap:.35rem; font-family:var(--mono); font-size:.7rem; color:var(--orange); text-decoration:none; letter-spacing:.07em; padding:.38rem .85rem; border:1px solid rgba(232,98,10,.3); border-radius:2px; transition: background .2s, border-color .2s; }
+    .sh-link:hover { background:rgba(232,98,10,.07); border-color:var(--orange); }
+
+    /* VIDEOS */
+    .vid-grid { display:flex; flex-direction:column; gap:2.5rem; }
+    .vid-card { background:var(--bg2); border:1px solid var(--border2); border-radius:4px; overflow:hidden; }
+    .vid-card iframe { display:block; width:100%; height:440px; }
+    .vid-body { padding:1.3rem 1.6rem; }
+    .vid-body p { font-size:.95rem; color:var(--muted); }
+
+    /* PUBLICATIONS */
+    .pub-list { display:flex; flex-direction:column; gap:1.1rem; }
+    .pub-item { display:flex; gap:1.4rem; align-items:flex-start; background:var(--bg2); border:1px solid var(--border2); border-radius:4px; padding:1.4rem 1.6rem; text-decoration:none; transition: border-color .2s, box-shadow .2s; }
+    .pub-item:hover { border-color:rgba(232,98,10,.4); box-shadow:0 4px 20px rgba(232,98,10,.08); }
+    .pub-yr { font-family:var(--mono); font-size:.7rem; color:var(--orange); white-space:nowrap; padding-top:.2rem; letter-spacing:.08em; }
+    .pub-content h3 { font-family:var(--serif); font-size:1.03rem; color:var(--text); margin-bottom:.25rem; }
+    .pub-content p { font-size:.87rem; color:var(--muted); }
+    .pub-j { font-family:var(--mono); font-size:.7rem; color:var(--orange); margin-top:.38rem; letter-spacing:.05em; }
+
+    /* TECH */
+    .tech-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:.9rem; }
+    .tech-item { background:var(--bg2); border:1px solid var(--border2); border-radius:4px; padding:.95rem 1.1rem; text-align:center; transition:all .2s; }
+    .tech-item:hover { border-color:var(--orange); transform:translateY(-2px); box-shadow:0 4px 16px rgba(232,98,10,.1); }
+    .tech-item span { font-family:var(--mono); font-size:.8rem; color:var(--text); display:block; }
+    .tech-item small { font-family:var(--mono); font-size:.63rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+
+    /* FOOTER */
+    footer { position:relative; z-index:1; border-top:1px solid var(--border2); padding:2.2rem 3rem; display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:.73rem; color:var(--muted); flex-wrap:wrap; gap:1rem; background: var(--bg2); }
+    footer a { color:var(--orange); text-decoration:none; }
+    footer a:hover { opacity:.7; }
+    .f-links { display:flex; gap:1.4rem; }
+
+    @media(max-width:768px){
+      nav{padding:.8rem 1.2rem;} .nav-links{gap:1rem;}
+      .sw{padding:4rem 1.4rem;}
+      .about-grid,.edu-grid,.li-grid,.shaders-grid{grid-template-columns:1fr;}
+      .hero-inner{padding:0 1.4rem;}
+      #hero{padding:7rem 0 3rem;}
+      footer{padding:1.8rem 1.4rem;}
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white">
-<header class="text-center py-10">
-    <h1 class="text-4xl font-bold">German Zvezdin</h1>
-    <p class="text-lg mt-2">Programmer | C++ Render Engineer</p>
-</header>
+<body>
 
+<nav>
+  <a href="#hero" class="nav-logo">G·Zvezdin</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#physics">Physics</a></li>
+    <li><a href="#shaders">Shaders</a></li>
+    <li><a href="#publications">Research</a></li>
+  </ul>
+</nav>
 
-<section class="max-w-4xl mx-auto px-4 mt-10">
-    <h2 class="text-2xl font-semibold text-center">Projects I've Worked On</h2>
-    <div id="youtube" class="flex flex-col items-center gap-6 mt-4">
-        <div class="text-center w-full">
-            <iframe width="800" height="450" src="https://www.youtube.com/embed/0TaF1j3ZLv4" frameborder="0" allowfullscreen></iframe>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-300">Designed and developed an advanced animation engine for AR graphics, enabling real-time visual effects and overlays for various sports. Worked on implementing physically-based lighting models, custom materials, shaders, and rendering optimizations to enhance visual fidelity and performance.</p>
-        </div>
-    </div>
-
-    <div id="youtube2" class="flex flex-col items-center gap-6 mt-4">
-        <div class="text-center w-full">
-            <iframe width="800" height="450" src="https://www.youtube.com/embed/4b168ro3CNY" frameborder="0" allowfullscreen></iframe>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-300">Designed and developed an advanced animation engine for AR graphics, enabling real-time visual effects and overlays for various sports. Worked on implementing physically-based lighting models, custom materials, shaders, and rendering optimizations to enhance visual fidelity and performance.</p>
-        </div>
-    </div>
-</section>
-
-<section class="max-w-4xl mx-auto px-4">
-    <h2 class="text-2xl font-semibold mt-6 text-center">Shader Projects</h2>
-    <div id="shadertoy" class="flex flex-col items-center gap-12 mt-4">
-
-        <div class="text-center w-full">
-            <h2 class="text-xl font-semibold mb-2">3D Mandelbrot set ray marching</h2>
-            <div class="flex justify-center">
-                <iframe width="800" height="450" frameborder="0" src="https://www.shadertoy.com/embed/ftjXWh?gui=true&t=10&paused=true&muted=false" allowfullscreen></iframe>
-            </div>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-300">A 3D visualization of the Mandelbrot set, computed using ray marching to achieve an infinite fractal effect.</p>
-        </div>
-
-        <div class="text-center w-full">
-            <h2 class="text-xl font-semibold mb-2">Soap bubble shader ray marching</h2>
-            <div class="flex justify-center">
-                <iframe width="800" height="450" frameborder="0" src="https://www.shadertoy.com/embed/flffRs?gui=true&t=10&paused=true&muted=false" allowfullscreen></iframe>
-            </div>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-300">This shader simulates the light reflections and distortions on a soap bubble using ray marching techniques.</p>
-        </div>
-
-        <div class="text-center w-full">
-            <h2 class="text-xl font-semibold mb-2">Pseudo morphing</h2>
-            <div class="flex justify-center">
-                <iframe width="800" height="450" frameborder="0" src="https://www.shadertoy.com/embed/3dGfzw?gui=true&t=10&paused=true&muted=false" allowfullscreen></iframe>
-            </div>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-300">This shader implements a ray marching technique to render 3D objects such as spheres and boxes, combined with smooth displacement and dynamic lighting effects</p>
-        </div>
-
-        <div class="text-center w-full">
-            <h2 class="text-xl font-semibold mb-2">University project</h2>
-            <div class="flex justify-center">
-                <iframe width="800" height="450" frameborder="0" src="https://www.shadertoy.com/embed/wsyfDR?gui=true&t=10&paused=true&muted=false" allowfullscreen></iframe>            </div>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-300">This shader employs a physically-based lighting system combined with ray marching, volumetric fog, soft shadows, and reflections to achieve realistic rendering. Below is a breakdown of the different lighting models and effects used</p>
-        </div>
-
-
-
-    </div>
-</section>
-
-<footer class="text-center py-6 mt-10 border-t border-gray-700">
-    <p>© 2025 German Zvezdin</p>
-    <p>
-        <a href="https://github.com/GermanZvezdin" class="text-blue-400">GitHub</a> |
-        <a href="mailto:german.zvezd@gmail.com" class="text-blue-400">Email</a>
+<!-- HERO -->
+<div id="hero" style="z-index:1;position:relative;">
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="hero-inner">
+    <p class="h-tag">C++ · GLSL · Physics · Mathematics</p>
+    <h1 class="h-name">German<br><span>Zvezdin</span></h1>
+    <p class="h-role">Render Engineer &amp; Mathematician</p>
+    <p class="h-desc">
+      Product-oriented computer graphics engineer with a diverse background spanning AR,
+      real-time rendering, infrared simulation, and mobile game engines.
+      Experienced in optimising graphics performance, developing rendering pipelines,
+      and creating interactive visual experiences across various platforms.
     </p>
+    <div class="h-btns">
+      <a href="mailto:german.zvezd@gmail.com" class="btn btn-p">Get in touch</a>
+      <a href="https://github.com/GermanZvezdin" class="btn btn-g" target="_blank">GitHub</a>
+      <a href="https://www.linkedin.com/in/german-zvezdin-0648951b3/" class="btn btn-g" target="_blank">LinkedIn</a>
+    </div>
+    <div class="h-stats">
+      <div><div class="stat-n">8+</div><div class="stat-l">Years experience</div></div>
+      <div><div class="stat-n">3</div><div class="stat-l">Publications</div></div>
+      <div><div class="stat-n">LWIR<br style="line-height:.4">+SWIR</div><div class="stat-l">IR pipelines</div></div>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ABOUT -->
+<section id="about" class="sw">
+  <div class="s-label" data-n="01">Profile</div>
+  <h2 class="s-title">Not just a render engineer.</h2>
+  <div class="about-grid">
+    <div class="a-card">
+      <div class="a-icon">∫</div>
+      <h3>Mathematician first</h3>
+      <p>Computer Science at Moscow State University combined with fundamental mathematics at Université Paris-Saclay. Rigorous background in numerical methods, linear algebra, and analysis that directly shapes every rendering pipeline decision.</p>
+    </div>
+    <div class="a-card">
+      <div class="a-icon">⟨λ⟩</div>
+      <h3>Physics from first principles</h3>
+      <p>Developed physics-based models for infrared sensor behaviour covering LWIR and SWIR. Co-authored a peer-reviewed paper on solving the Boltzmann equations on GPU using the Lattice Boltzmann Method. The physics is derived, not approximated.</p>
+    </div>
+    <div class="a-card">
+      <div class="a-icon">▷</div>
+      <h3>GPU architecture</h3>
+      <p>Modified and extended Unreal Engine 5 source code for custom rendering and simulation requirements. OpenGL, Vulkan, Metal, CUDA — across platforms and APIs.</p>
+    </div>
+    <div class="a-card">
+      <div class="a-icon">✎</div>
+      <h3>Published researcher</h3>
+      <p>Co-authored in <em>Communications in Computational Physics</em> on Lattice Boltzmann methods. Author of two PBR / ray marching articles on Habr.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- EDUCATION -->
+<section id="education" class="sw">
+  <div class="s-label" data-n="02">Education</div>
+  <h2 class="s-title">Academic background.</h2>
+  <div class="edu-grid">
+    <div class="edu-card">
+      <div class="edu-date">SEPT 2018 — MAY 2022</div>
+      <div class="edu-school">Moscow State University</div>
+      <div class="edu-field">Computer Science</div>
+      <div class="edu-gpa">GPA 3.7 / 4.0 &nbsp;·&nbsp; Moscow, Russia</div>
+    </div>
+    <div class="edu-card">
+      <div class="edu-date">SEPT 2024 — MAY 2025</div>
+      <div class="edu-school">Université Paris-Saclay</div>
+      <div class="edu-field">Fundamental Mathematics</div>
+      <div class="edu-gpa">GPA 12 / 20 &nbsp;·&nbsp; Paris, France</div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- EXPERIENCE -->
+<section id="experience" class="sw">
+  <div class="s-label" data-n="03">Experience</div>
+  <h2 class="s-title">8 years of rendering.</h2>
+  <div class="timeline">
+
+    <div class="tl">
+      <div class="tl-dot"></div>
+      <div class="tl-date">APR 2025 — PRESENT</div>
+      <div class="tl-title">C++ Simulation / Render Engineer</div>
+      <div class="tl-co">AILiveSim — Remote</div>
+      <div class="tl-desc">
+        Designed and implemented a real-time infrared (IR) image rendering pipeline.
+        Developed a physics-based model for infrared sensor behaviour, including LWIR and SWIR.
+        Modified and extended Unreal Engine 5 source code to support custom rendering and simulation requirements.
+      </div>
+      <div class="tl-tags"><span class="tag">UE5</span><span class="tag">C++</span><span class="tag">HLSL</span><span class="tag">LWIR</span><span class="tag">SWIR</span><span class="tag">Physics Simulation</span></div>
+    </div>
+
+    <div class="tl">
+      <div class="tl-dot"></div>
+      <div class="tl-date">DEC 2022 — DEC 2024</div>
+      <div class="tl-title">C++ Render Engineer</div>
+      <div class="tl-co">Sportradar — Remote</div>
+      <div class="tl-desc">
+        Developed a real-time AR engine, focusing on performance and scalability.
+        Designed and implemented shaders for rendering effects using GLSL.
+        Added support for various animation types and lighting models.
+        Implemented advanced post-processing effects such as bloom, blur, and chroma keying.
+        Built solutions for video stream processing (SRT/RTMP) using C++ and FFmpeg.
+      </div>
+      <div class="tl-tags"><span class="tag">C++</span><span class="tag">GLSL</span><span class="tag">OpenGL</span><span class="tag">PBR</span><span class="tag">FFmpeg</span><span class="tag">AR</span></div>
+    </div>
+
+    <div class="tl">
+      <div class="tl-dot"></div>
+      <div class="tl-date">NOV 2021 — DEC 2022</div>
+      <div class="tl-title">C++ Render Engineer</div>
+      <div class="tl-co">OSAI — Remote</div>
+      <div class="tl-desc">
+        Implemented GLSL shaders and improved visual effects for visualisations.
+        Developed C++ AR engine for animation with OpenGL.
+        Improved efficiency of graphical pipeline code.
+        Designed a plugin for Unreal Engine 5 to support video encoding and streaming.
+        Optimised video pipeline performance for real-time applications.
+        Conducted comprehensive testing using CRC/PSNR to ensure accuracy and quality.
+      </div>
+      <div class="tl-tags"><span class="tag">C++</span><span class="tag">GLSL</span><span class="tag">UE5</span><span class="tag">OpenGL</span><span class="tag">PSNR</span></div>
+    </div>
+
+    <div class="tl">
+      <div class="tl-dot"></div>
+      <div class="tl-date">SEP 2020 — NOV 2021</div>
+      <div class="tl-title">C++ Render Engineer / Junior Researcher</div>
+      <div class="tl-co">Keldysh Institute of Applied Mathematics RAS — Moscow</div>
+      <div class="tl-desc">
+        Optimisation of rendering pipeline. Implementation of GLSL shaders.
+        Visualisation of numerical methods by ray tracing with NVIDIA OptiX.
+      </div>
+      <div class="tl-tags"><span class="tag">NVIDIA OptiX</span><span class="tag">Ray Tracing</span><span class="tag">GLSL</span><span class="tag">Numerical Methods</span></div>
+    </div>
+
+    <div class="tl">
+      <div class="tl-dot"></div>
+      <div class="tl-date">JAN 2018 — SEP 2020</div>
+      <div class="tl-title">Junior C++ Render Engineer</div>
+      <div class="tl-co">RenderNova — Moscow</div>
+      <div class="tl-desc">
+        Wrote shaders for lighting and simple visual effects. Expanded object pool for rendering dynamic scenes.
+        Added support for loading and displaying 3D models. Implemented material system with texture support.
+        Improved overall rendering performance and tested visual features across different scenes.
+      </div>
+      <div class="tl-tags"><span class="tag">C++</span><span class="tag">OpenGL</span><span class="tag">GLSL</span></div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- PHYSICS -->
+<section id="physics" class="sw">
+  <div class="s-label" data-n="04">Physics Simulation</div>
+  <h2 class="s-title">Infrared rendering pipeline.</h2>
+  <p style="max-width:620px;color:var(--muted);margin-bottom:2.2rem;font-size:1rem;">
+    Physics-based model for infrared sensor behaviour — LWIR &amp; SWIR —
+    implemented as a real-time rendering pipeline inside Unreal Engine 5.
+  </p>
+  <div class="li-grid">
+    <a href="https://www.linkedin.com/posts/ailivesim_your-autonomy-is-only-as-good-as-your-sensors-activity-7427607426540969984-lBPF?utm_source=share&utm_medium=member_desktop&rcm=ACoAADHJSwwBgnQ1oEQUhVFfdzHk_TwXx6oYLbA" class="li-card" target="_blank">
+      <div class="li-tag">// LWIR · Unreal Engine 5</div>
+      <h3>Real-time LWIR thermal rendering pipeline</h3>
+      <p>Designed and implemented a real-time infrared image rendering pipeline with a physics-based model for LWIR sensor behaviour, integrated via custom UE5 source modifications.</p>
+      <div class="li-chips">
+        <span class="li-chip">LWIR</span><span class="li-chip">UE5</span><span class="li-chip">C++</span><span class="li-chip">HLSL</span>
+      </div>
+      <div class="li-foot">
+        <span class="li-lbl">LinkedIn post</span>
+        <span class="li-arr">↗</span>
+      </div>
+    </a>
+    <a href="https://www.linkedin.com/posts/ailivesim_autonomy-simulation-thermalsensors-activity-7427245029250772992-Z1xg?utm_source=share&utm_medium=member_desktop&rcm=ACoAADHJSwwBgnQ1oEQUhVFfdzHk_TwXx6oYLbA" class="li-card" target="_blank">
+      <div class="li-tag">// SWIR · 900–1700 nm</div>
+      <h3>Physics-based SWIR sensor simulation</h3>
+      <p>Developed a physics-based model for SWIR infrared sensor behaviour, covering spectral band characteristics and sensor-accurate output within the custom UE5 rendering pipeline.</p>
+      <div class="li-chips">
+        <span class="li-chip">SWIR</span><span class="li-chip">UE5</span><span class="li-chip">C++</span><span class="li-chip">Physics</span>
+      </div>
+      <div class="li-foot">
+        <span class="li-lbl">LinkedIn post</span>
+        <span class="li-arr">↗</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- SHADERS -->
+<section id="shaders" class="sw">
+  <div class="s-label" data-n="05">Shader Projects</div>
+  <h2 class="s-title">Ray marching &amp; PBR.</h2>
+  <div class="shaders-grid">
+
+    <div class="sh-card">
+      <div class="sh-prev">
+        <div class="sh-bg bg-a"></div>
+        <div class="sh-sym">∮</div>
+        <div class="sh-play">▶</div>
+        <div class="sh-url">shadertoy.com/view/flffRs</div>
+      </div>
+      <div class="sh-body">
+        <div class="sh-num">SHADERTOY · 01</div>
+        <div class="sh-title">Soap Bubble — Thin Film Interference</div>
+        <div class="sh-desc">Simulates light reflections and distortions on a soap bubble using ray marching techniques.</div>
+        <a href="https://www.shadertoy.com/view/flffRs" class="sh-link" target="_blank">Open in Shadertoy ↗</a>
+      </div>
+    </div>
+
+    <div class="sh-card">
+      <div class="sh-prev">
+        <div class="sh-bg bg-b"></div>
+        <div class="sh-sym">∞</div>
+        <div class="sh-play">▶</div>
+        <div class="sh-url">shadertoy.com/view/ftjXWh</div>
+      </div>
+      <div class="sh-body">
+        <div class="sh-num">SHADERTOY · 02</div>
+        <div class="sh-title">3D Mandelbrot — Fractal Ray Marching</div>
+        <div class="sh-desc">3D visualisation of the Mandelbrot set computed using ray marching to achieve an infinite fractal effect.</div>
+        <a href="https://www.shadertoy.com/view/ftjXWh" class="sh-link" target="_blank">Open in Shadertoy ↗</a>
+      </div>
+    </div>
+
+    <div class="sh-card">
+      <div class="sh-prev">
+        <div class="sh-bg bg-c"></div>
+        <div class="sh-sym">⊕</div>
+        <div class="sh-play">▶</div>
+        <div class="sh-url">shadertoy.com/view/3dGfzw</div>
+      </div>
+      <div class="sh-body">
+        <div class="sh-num">SHADERTOY · 03</div>
+        <div class="sh-title">Pseudo Morphing — SDF Blending</div>
+        <div class="sh-desc">Ray marching to render 3D objects such as spheres and boxes, combined with smooth displacement and dynamic lighting effects.</div>
+        <a href="https://www.shadertoy.com/view/3dGfzw" class="sh-link" target="_blank">Open in Shadertoy ↗</a>
+      </div>
+    </div>
+
+    <div class="sh-card">
+      <div class="sh-prev">
+        <div class="sh-bg bg-d"></div>
+        <div class="sh-sym">∇</div>
+        <div class="sh-play">▶</div>
+        <div class="sh-url">shadertoy.com/view/wsyfDR</div>
+      </div>
+      <div class="sh-body">
+        <div class="sh-num">SHADERTOY · 04</div>
+        <div class="sh-title">PBR — Volumetric Lighting System</div>
+        <div class="sh-desc">Physically-based lighting combined with ray marching, volumetric fog, soft shadows, and reflections to achieve realistic rendering.</div>
+        <a href="https://www.shadertoy.com/view/wsyfDR" class="sh-link" target="_blank">Open in Shadertoy ↗</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- AR ENGINE -->
+<section id="ar" class="sw">
+  <div class="s-label" data-n="06">AR Engine</div>
+  <h2 class="s-title">Live broadcast rendering.</h2>
+  <div class="vid-grid">
+    <div class="vid-card">
+      <iframe src="https://www.youtube.com/embed/0TaF1j3ZLv4" frameborder="0" allowfullscreen></iframe>
+      <div class="vid-body"><p>Designed and developed an advanced animation engine for AR graphics, enabling real-time visual effects and overlays for various sports. Implemented physically-based lighting models, custom materials, shaders, and rendering optimisations to enhance visual fidelity and performance.</p></div>
+    </div>
+    <div class="vid-card">
+      <iframe src="https://www.youtube.com/embed/4b168ro3CNY" frameborder="0" allowfullscreen></iframe>
+      <div class="vid-body"><p>Real-time AR graphics engine for live sports broadcast — animation types, lighting models, post-processing effects, and video stream processing (SRT/RTMP) with FFmpeg.</p></div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- PUBLICATIONS -->
+<section id="publications" class="sw">
+  <div class="s-label" data-n="07">Research</div>
+  <h2 class="s-title">Publications.</h2>
+  <div class="pub-list">
+    <a href="https://global-sci.com/index.php/cicp/article/view/7131/14198" class="pub-item" target="_blank">
+      <div class="pub-yr">2023</div>
+      <div class="pub-content">
+        <h3>Prediction of Moments in the Particles on Demand Method for LBM</h3>
+        <p>Zipunova E., <strong>Zvezdin G.</strong>, Perepelkina A., Levchenko V.</p>
+        <div class="pub-j">Communications in Computational Physics — Vol. 33 (2023), Iss. 1, pp. 144–173</div>
+      </div>
+    </a>
+    <a href="https://habr.com/en/companies/constanta/articles/684016/" class="pub-item" target="_blank">
+      <div class="pub-yr">2022</div>
+      <div class="pub-content">
+        <h3>Physically-Based Rendering — Ray Marching (Part 1 &amp; 2)</h3>
+        <p>Zvezdin G.</p>
+        <div class="pub-j">Habr — Computer Science &amp; Applications Journal</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- TECH -->
+<section id="tech" class="sw">
+  <div class="s-label" data-n="08">Stack</div>
+  <h2 class="s-title">Technologies.</h2>
+  <div class="tech-grid">
+    <div class="tech-item"><span>C++ / C</span><small>Core</small></div>
+    <div class="tech-item"><span>HLSL / GLSL</span><small>Shaders</small></div>
+    <div class="tech-item"><span>CUDA</span><small>GPU Compute</small></div>
+    <div class="tech-item"><span>Unreal Engine 5</span><small>Platform</small></div>
+    <div class="tech-item"><span>OpenGL</span><small>Graphics API</small></div>
+    <div class="tech-item"><span>Vulkan</span><small>Graphics API</small></div>
+    <div class="tech-item"><span>Metal</span><small>Apple GPU</small></div>
+    <div class="tech-item"><span>NVIDIA OptiX</span><small>Ray Tracing</small></div>
+    <div class="tech-item"><span>FFmpeg</span><small>Video</small></div>
+    <div class="tech-item"><span>Swift</span><small>Mobile / macOS</small></div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 German Zvezdin — Paris, France</span>
+  <div class="f-links">
+    <a href="https://github.com/GermanZvezdin" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/german-zvezdin-0648951b3/" target="_blank">LinkedIn</a>
+    <a href="mailto:german.zvezd@gmail.com">german.zvezd@gmail.com</a>
+  </div>
 </footer>
+
 </body>
 </html>
