@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rendering the Invisible — LWIR Path Tracing on a Live Lattice Boltzmann Thermal Core · German Zvezdin</title>
+  <meta name="description" content="How to render what a thermal camera sees: LWIR band radiometry, Kirchhoff emissivity instead of albedo, and a real-time D3Q39 lattice Boltzmann solver feeding surface temperatures straight into a Vulkan path tracer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #f5f3ef;
+      --bg2:    #ffffff;
+      --bg3:    #ede9e3;
+      --orange: #e8620a;
+      --orange2:#c4510a;
+      --text:   #1a1714;
+      --muted:  #7a7068;
+      --border: rgba(232,98,10,.15);
+      --border2:#e4ddd6;
+      --mono:   'JetBrains Mono', monospace;
+      --serif:  'Crimson Pro', Georgia, serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--serif); font-size: 1.08rem; line-height: 1.75;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(232,98,10,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,98,10,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .85rem 3rem;
+      background: rgba(245,243,239,.92); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border2);
+    }
+    .nav-logo { font-family: var(--mono); font-size: .82rem; color: var(--orange); letter-spacing: .14em; text-decoration: none; font-weight: 700; }
+    .nav-back { font-family: var(--mono); font-size: .75rem; color: var(--muted); text-decoration: none; letter-spacing: .1em; text-transform: uppercase; transition: color .2s; }
+    .nav-back:hover { color: var(--orange); }
+
+    .art { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 8.5rem 1.6rem 5rem; }
+    .a-label { font-family: var(--mono); font-size: .7rem; color: var(--orange); text-transform: uppercase; letter-spacing: .25em; margin-bottom: .8rem; }
+    .a-label::before { content: '// '; opacity: .4; }
+    h1 { font-family: var(--mono); font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.25; margin-bottom: 1.1rem; }
+    h1 span { color: var(--orange); }
+    .a-meta { font-family: var(--mono); font-size: .73rem; color: var(--muted); letter-spacing: .08em; display: flex; gap: 1.4rem; flex-wrap: wrap; margin-bottom: 2.6rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--border2); }
+    .a-meta b { color: var(--orange); font-weight: 400; }
+
+    h2 { font-family: var(--mono); font-size: 1.22rem; font-weight: 700; margin: 3rem 0 1.1rem; border-left: 3px solid var(--orange); padding-left: .9rem; }
+    p { margin-bottom: 1.15rem; }
+    a { color: var(--orange); text-decoration: none; border-bottom: 1px solid var(--border); transition: border-color .2s; }
+    a:hover { border-color: var(--orange); }
+    em { font-style: italic; }
+    strong { font-weight: 600; }
+
+    figure { margin: 1.9rem 0 2.1rem; }
+    figure video, figure img { display: block; width: 100%; border: 1px solid var(--border2); border-radius: 4px; background: #000; }
+    figcaption { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: .55rem; line-height: 1.55; }
+    figcaption b { color: var(--orange); font-weight: 400; }
+
+    .eq {
+      font-family: var(--mono); font-size: .88rem; line-height: 1.7;
+      background: var(--bg2); border: 1px solid var(--border2); border-left: 3px solid var(--orange);
+      border-radius: 4px; padding: .9rem 1.2rem; margin: 1.4rem 0 1.6rem;
+      overflow-x: auto; white-space: nowrap;
+    }
+    .eq small { color: var(--muted); font-size: .72rem; }
+
+    pre {
+      font-family: var(--mono); font-size: .8rem; line-height: 1.65;
+      background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px;
+      padding: 1rem 1.2rem; margin: 1.4rem 0 1.6rem; overflow-x: auto; color: var(--text);
+    }
+    pre .c { color: var(--muted); }
+    code { font-family: var(--mono); font-size: .85em; background: var(--bg3); padding: .08em .35em; border-radius: 2px; }
+
+    .note {
+      background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px;
+      padding: 1.1rem 1.4rem; margin: 1.5rem 0; font-size: .98rem;
+    }
+    .note::before { content: 'note'; display: block; font-family: var(--mono); font-size: .65rem; color: var(--orange); text-transform: uppercase; letter-spacing: .2em; margin-bottom: .4rem; }
+
+    .refs { font-size: .95rem; }
+    .refs li { margin-bottom: .55rem; margin-left: 1.2rem; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } nav { padding: .8rem 1.2rem; } }
+
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border2); padding: 2rem 1.6rem; text-align: center; font-family: var(--mono); font-size: .73rem; color: var(--muted); background: var(--bg2); }
+    footer a { border: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../../index.html" class="nav-logo">G·Zvezdin</a>
+  <a href="../../index.html#articles" class="nav-back">← Back to articles</a>
+</nav>
+
+<article class="art">
+  <div class="a-label">Article · LWIR × Lattice Boltzmann</div>
+  <h1>Rendering the invisible:<br>LWIR path tracing on a <span>live thermal solver</span></h1>
+  <div class="a-meta">
+    <span>German Zvezdin</span>
+    <span><b>2026</b></span>
+    <span>reading time <b>~12 min</b></span>
+    <span>Vulkan · Slang · C++</span>
+  </div>
+
+  <p>Hi, my name is German. I build rendering engines in C++, and for the last while
+  I have been busy with a slightly unusual kind of photorealism — the kind you cannot
+  see with your own eyes. If you are here, chances are you are curious about computer
+  graphics, physics, or both. In this article I will walk through how to render what a
+  thermal camera sees in the LWIR band (8–14&nbsp;µm) — and, more importantly, where the
+  temperatures come from. Because in my engine they are not painted on: they are computed
+  by a lattice Boltzmann solver running live on the GPU, in the same frame loop as the
+  path tracer. Read carefully, and by the end the pictures of a jet engine below will
+  feel almost obvious. Almost.</p>
+
+  <figure>
+    <video autoplay muted loop playsinline src="img/engine-live.mp4"></video>
+    <figcaption><b>fig. 1</b> — the whole pipeline running live: spectral LWIR path tracing
+    over a lattice Boltzmann temperature field. Single GPU, Vulkan ray queries, shaders in Slang.</figcaption>
+  </figure>
+
+  <p>I will deliberately stay at the level of ideas and equations: no full implementation
+  here, only the load-bearing physics and the architecture. If you are new to path tracing
+  itself, I once wrote a two-part introduction from first principles
+  (<a href="https://habr.com/en/companies/constanta/articles/669478/" target="_blank">part&nbsp;1</a>,
+  <a href="https://habr.com/en/companies/constanta/articles/684016/" target="_blank">part&nbsp;2</a>, in Russian) —
+  this text assumes you are comfortable with rays, BRDFs and Monte Carlo.</p>
+
+  <h2>1. A camera that photographs temperature</h2>
+
+  <p>Everything warmer than absolute zero glows. For objects around room temperature the
+  peak of that glow sits near 10&nbsp;µm — right in the middle of the 8–14&nbsp;µm
+  atmospheric window that LWIR cameras use. This single fact rearranges all your rendering
+  intuitions. First: <strong>there is no such thing as “the light source”.</strong> Walls,
+  the floor, your face, the sky — every surface in the scene emits. Second: RGB albedo
+  textures mean nothing here. In LWIR a material is not a color; it is a pair
+  <em>(emissivity, temperature)</em> — how willingly it radiates, and how hot it is.
+  The scene stops being a set of textured meshes and becomes a thermodynamic system that
+  happens to be photographed.</p>
+
+  <h2>2. The radiometry of one band</h2>
+
+  <p>The good news: we do not need per-wavelength spectral rendering. The sensor integrates
+  the whole band, so a single number per path is enough — the band radiance of a black body
+  at temperature <code>T</code>, which is Planck’s law integrated over 8–14&nbsp;µm.
+  It is convenient to express it through the black-body fraction function
+  <code>F(0→λT)</code> — the share of total emission below a given <code>λT</code>:</p>
+
+  <div class="eq">
+    L<sub>band</sub>(T) = σT⁴/π · [ F(0→λ₂T) − F(0→λ₁T) ] &nbsp;&nbsp;<small>W·m⁻²·sr⁻¹, λ₁ = 8 µm, λ₂ = 14 µm</small>
+  </div>
+
+  <p>This function is smooth and strictly monotonic in <code>T</code> — which matters at the
+  other end of the pipeline. A real thermal camera does not show radiance; it shows
+  <em>apparent temperature</em>: it inverts <code>L<sub>band</sub></code> back into kelvins
+  (a few Newton iterations, since the function is monotonic), adds sensor noise in the
+  temperature domain (NETD, about 30&nbsp;mK for a microbolometer), and maps a user-chosen
+  temperature window onto grayscale. That is the whole reason thermal footage looks the way
+  it does: you are not looking at an image, you are looking at the UI of a measurement
+  device. So the renderer ends exactly the same way: radiance → apparent temperature →
+  NETD noise → thermal window → pixels.</p>
+
+  <h2>3. Kirchhoff instead of albedo</h2>
+
+  <p>Where does emissivity come from? The lazy answer is “from a texture”. The physical
+  answer is: <strong>from the BRDF you already have.</strong> Kirchhoff’s law says that, in
+  equilibrium, what a surface absorbs it must emit. Split the energy at a surface into a
+  specular Fresnel part <code>F(θ, n+ik)</code>, a diffuse part <code>ρ<sub>d</sub></code>,
+  and emission — and emissivity stops being an independent parameter:</p>
+
+  <div class="eq">
+    ε(θ) = 1 − ρ<sub>d</sub> − F(θ, n+ik)
+  </div>
+
+  <p>Two families of consequences fall out of this one line. Dielectrics have high
+  emissivity near normal incidence, dropping toward grazing angles — which is exactly why
+  water and glass turn into mirrors of the cold sky at shallow angles in thermal footage.
+  Metals, with large <code>n</code> and <code>k</code>, barely emit at all: in LWIR a
+  polished metal part is a <em>cold mirror</em> that shows you the temperatures of its
+  surroundings instead of its own. In my material library the <code>n+ik</code> pairs are
+  fitted so that the normal-incidence ε matches published IR thermography tables, and one
+  preset drives both the render and the simulation side of the engine.</p>
+
+  <div class="note">
+    My favorite unit test in the whole project: <strong>the isothermal scene.</strong>
+    Set every surface, the air and the sky to the same 300&nbsp;K — and the image must go
+    perfectly, boringly flat. Materials must vanish. Geometry must vanish. If any silhouette
+    survives, your surface model is leaking energy somewhere, and this test will catch it
+    long before your eyes do. Physics is the best QA engineer I ever worked with.
+  </div>
+
+  <h2>4. Path tracing the band</h2>
+
+  <p>The tracer itself is a classic backward path tracer with one twist: every hit
+  contributes. At each intersection the path picks up
+  <code>ε(θ)·L<sub>band</sub>(T<sub>surface</sub>)</code> weighted by the current
+  throughput, then continues by sampling the reflection — specular versus diffuse lobe.
+  Between hits, the air works as a gray absorbing medium: over a segment of length
+  <code>s</code> the radiance relaxes toward the emission of the air itself,</p>
+
+  <div class="eq">
+    L ← L·τ + (1 − τ)·L<sub>band</sub>(T<sub>air</sub>), &nbsp; τ = e<sup>−κs</sup>
+  </div>
+
+  <p>and a ray that escapes the scene ends on the “sky” — a huge cold ceiling at roughly
+  255&nbsp;K, which is why puddles and car roofs read freezing-cold in outdoor thermal
+  images. Accumulation is progressive, with one practical detail: while the physics below
+  is running, the tracer blends frames with an exponential moving average instead of a
+  plain progressive mean — so the picture stays converged <em>and</em> breathes together
+  with the simulation.</p>
+
+  <h2>5. The temperature problem</h2>
+
+  <p>And now the honest question: what do we plug into
+  <code>T<sub>surface</sub></code>? The industry-standard answer is to paint temperatures
+  by hand or bake them once in an offline solver. It works — the way a photograph of a
+  statue works. Heat in a real scene <em>moves</em>: the hot core warms the casing by
+  conduction, the plume rises by convection, every surface trades energy with every other
+  by radiation, and the LWIR image is precisely a portrait of that motion. I wanted the
+  full loop — conduction, convection and radiation — computed live, on the same GPU,
+  inside the same frame. That requirement has essentially one good answer.</p>
+
+  <h2>6. The lattice Boltzmann method, in one breath</h2>
+
+  <p>The lattice Boltzmann method is philosophically the same trick as path tracing.
+  Path tracing refuses to solve the rendering equation analytically and instead simulates
+  photons, letting the image emerge. LBM refuses to solve the Navier–Stokes equations
+  directly and instead simulates a toy gas, letting hydrodynamics emerge. On a regular
+  grid, every cell stores a handful of numbers <code>f<sub>i</sub></code> — “how much gas
+  is flying in direction <code>e<sub>i</sub></code>” — and each time step is two moves:</p>
+
+<pre><span class="c">// the whole solver, conceptually</span>
+for each cell:                       <span class="c">// 1. collide — 100% local</span>
+    f[i] += (f_eq(ρ, u, θ) − f[i]) / τ
+for each cell, each direction i:     <span class="c">// 2. stream — copy to neighbor</span>
+    f_new[i] at (x + e[i]) = f[i] at (x)</pre>
+
+  <p>Collision needs no neighbors at all; streaming is a pure memory shift; a wall is just
+  a population bouncing back. No global linear systems, no pressure solves — the algorithm
+  is embarrassingly parallel, which is why it maps onto a GPU like it was designed for it.
+  Viscosity and heat diffusion hide inside the relaxation time,
+  <code>ν = c<sub>s</sub>²(τ − ½)</code> — and the mysterious ½ has a beautiful origin in
+  the trapezoidal rule, but that is a story for another article.</p>
+
+  <h2>7. One lattice for mass, momentum and heat: D3Q39</h2>
+
+  <p>The subtle part is temperature. The popular way is to run a second, separate
+  distribution for heat next to the flow. I went with the stricter option: a
+  <strong>multispeed thermal lattice</strong>, where a single distribution carries mass,
+  momentum <em>and</em> energy honestly. The price of honesty is mathematical: the discrete
+  velocity set must reproduce Gaussian moments up to 7th order, and that cannot be done
+  with the usual 19 or 27 velocities. The minimal 3D answer is <strong>D3Q39</strong>:
+  six shells of velocities — the rest particle, an octahedron, a cube, a doubled
+  octahedron, a doubled cuboctahedron and a tripled octahedron. Each shell is an orbit of
+  the cube’s symmetry group, each carries one weight, and the weights are the solution of
+  a small linear system that matches discrete sums against Gaussian integrals. Two facts
+  make the whole construction click: the equilibrium is a 3rd-order Hermite projection of
+  the Maxwellian, and every one of the speeds — 1, √3, 2, 2√2, 3 — lands <em>exactly</em>
+  on a lattice node, so streaming remains an exact shift with zero interpolation.</p>
+
+  <p>Solid bodies are simpler: inside a solid there is no flow, only conduction, and a
+  passive scalar needs far less isotropy — a tiny 7-velocity lattice per cell is enough,
+  with a per-material relaxation time (metal, plastic, heater presets — the same material
+  entry that drives ε on the render side). Air and solid exchange heat through a
+  Robin-type flux coupling at the interface. That is conjugate heat transfer: the engine
+  casing on fig.&nbsp;1 is warm because the core is hot, not because anyone painted it warm.</p>
+
+  <h2>8. Radiation: the renderer’s BVH does double duty</h2>
+
+  <p>One mechanism refuses to fit into the lattice: radiative exchange. Photons do not
+  hop between neighboring cells — they cross the whole scene in a straight line. So
+  radiation is a separate Monte Carlo pass, and here comes my favorite architectural
+  detail of the project: <strong>the physics reuses the renderer’s acceleration
+  structure.</strong> Every surface cell of a solid shoots a few cosine-distributed rays
+  through the very same TLAS the camera uses, via inline ray queries. At each hit,
+  Russian roulette on the local emissivity decides absorption versus a diffuse bounce;
+  an absorbed ray brings home the T⁴ of what it saw, an escaping ray brings the
+  environment temperature. The net source
+  <code>S ∝ ε·(⟨T⁴<sub>seen</sub>⟩ − T⁴<sub>self</sub>)</code> feeds straight back into
+  the thermal lattice. One scene, two kinds of rays: camera rays make the image, physics
+  rays move the heat.</p>
+
+  <h2>9. Closing the loop</h2>
+
+<pre>[ LBM × k substeps ] → [ 3D temperature volume ] → [ path tracer samples live T ] → [ EMA accumulate ]
+        ↑                                                        |
+        └────────────── MC radiation over the same TLAS ─────────┘</pre>
+
+  <p>Every frame the solver advances a few substeps, temperatures land in a 3D texture,
+  and the path tracer reads the surface temperature at every hit — no baking step, no
+  synchronization ceremony. Debug views live on the number keys: visible-light path
+  tracing, a volume ray-march of the velocity field, the temperature field in the
+  classic ironbow palette, and the LWIR view itself. Watching a plume detach from a hot
+  part in the ironbow view and then flipping to LWIR to see what a camera would make of
+  it never gets old:</p>
+
+  <figure>
+    <video autoplay muted loop playsinline src="img/lbm-field.mp4"></video>
+    <figcaption><b>fig. 2</b> — the thermal core as the renderer sees it: volume ray-march
+    of the live temperature field (ironbow palette), buoyant plume rising off a heated part.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <figure>
+      <img src="img/engine-fan.jpg" alt="LWIR render of a jet engine, front fan view">
+      <figcaption><b>fig. 3</b> — LWIR path tracing, front view: the fan reads as a cold
+      metallic mirror while the hot section glows through the bypass.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/engine-core.jpg" alt="LWIR render of a jet engine, turbine and nozzle view">
+      <figcaption><b>fig. 4</b> — rear view onto the turbine: temperature gradients across
+      the stages come from the solver, emissivity contrast from the Fresnel model.</figcaption>
+    </figure>
+  </div>
+
+  <p>Look closer at fig.&nbsp;3 and fig.&nbsp;4: the bright core is not a light source I
+  placed — it is a boundary condition. Everything else, from the warm gradient along the
+  casing to the dim reflections in the polished parts, is the physics doing its job:
+  conduction through the solid lattice, convection in the air lattice, radiation over the
+  BVH, Kirchhoff at every surface.</p>
+
+  <h2>10. What is next</h2>
+
+  <p>The current bottleneck is memory bandwidth: a dense grid with 39 floats per air cell
+  is a heavy way to store mostly-quiet space. The plan is block-sparse adaptive
+  resolution (16³ bricks in a VDB-style topology, refined near surfaces and steep
+  gradients), cut-cell boundaries instead of the voxel staircase, a correlated-k
+  atmosphere instead of the gray absorber, and Fresnel polarization for water and glass.
+  Plus the tooling direction: importing an arbitrary asset, marking hot regions with a
+  brush, and baking the solved surface temperatures back into its textures — turning the
+  whole engine into a thermal look-dev tool.</p>
+
+  <p>If you take one thing away, let it be this: an LWIR image is not a stylized
+  grayscale photo — it is a rendering of a temperature field, and it is only as honest
+  as the physics that produced that field. Simulate the field, derive the emissivity,
+  respect the sensor, and the pictures start telling the truth.</p>
+
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Zvezdin G. — <a href="https://habr.com/en/companies/constanta/articles/669478/" target="_blank">Physically-based rendering. Ray marching, part 1</a> / <a href="https://habr.com/en/companies/constanta/articles/684016/" target="_blank">part 2</a> (Habr, in Russian).</li>
+    <li>Zipunova E., Zvezdin G., Perepelkina A., Levchenko V. — <a href="https://global-sci.com/index.php/cicp/article/view/7131/14198" target="_blank">Prediction of Moments in the Particles-on-Demand Method for LBM</a>, Communications in Computational Physics, 33 (2023).</li>
+    <li>Krüger T. et al. — <a href="https://link.springer.com/book/10.1007/978-3-319-44649-3" target="_blank">The Lattice Boltzmann Method: Principles and Practice</a>, Springer, 2017.</li>
+    <li>Shan X., Yuan X.-F., Chen H. — Kinetic theory representation of hydrodynamics, J. Fluid Mech. 550 (2006): the D3Q39 multispeed lattice.</li>
+    <li>Guo Z., Zheng C., Shi B. — Discrete lattice effects on the forcing term in the LBM, Phys. Rev. E 65 (2002).</li>
+  </ul>
+</article>
+
+<footer>
+  © 2026 German Zvezdin — <a href="../../index.html">germanzvezdin.github.io</a>
+</footer>
+
+</body>
+</html>
