@@ -127,6 +127,7 @@
     .li-lbl { font-family:var(--mono); font-size:.7rem; color:var(--muted); }
     .li-arr { color:var(--orange); transition:transform .2s; }
     .li-card:hover .li-arr { transform:translate(3px,-3px); }
+    .li-card.featured { border-color: rgba(232,98,10,.45); background: linear-gradient(180deg, rgba(232,98,10,.045), transparent 55%), var(--bg2); }
 
     /* SHADERS */
     .shaders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
@@ -199,6 +200,7 @@
     <li><a href="#physics">Physics</a></li>
     <li><a href="#shaders">Shaders</a></li>
     <li><a href="#publications">Research</a></li>
+    <li><a href="#articles">Articles</a></li>
   </ul>
 </nav>
 
@@ -516,9 +518,55 @@
 
 <hr class="div">
 
+<!-- ARTICLES -->
+<section id="articles" class="sw">
+  <div class="s-label" data-n="08">Writing</div>
+  <h2 class="s-title">Articles.</h2>
+  <div class="li-grid">
+    <a href="articles/lwir-lbm/" class="li-card featured">
+      <div class="li-tag">// New · LWIR × Lattice Boltzmann</div>
+      <h3>Rendering the Invisible: LWIR Path Tracing on a Live Lattice Boltzmann Thermal Core</h3>
+      <p>What a thermal camera actually sees — band radiometry, Kirchhoff emissivity derived from the BRDF instead of albedo — and where the temperatures come from: a real-time D3Q39 thermal solver feeding the path tracer every frame, with radiation traced over the renderer's own BVH.</p>
+      <div class="li-chips">
+        <span class="li-chip">LWIR</span><span class="li-chip">Path Tracing</span><span class="li-chip">D3Q39</span><span class="li-chip">Vulkan</span><span class="li-chip">Slang</span>
+      </div>
+      <div class="li-foot">
+        <span class="li-lbl">Read on this site · EN</span>
+        <span class="li-arr">→</span>
+      </div>
+    </a>
+    <a href="https://habr.com/en/companies/constanta/articles/669478/" class="li-card" target="_blank">
+      <div class="li-tag">// Tutorial · Ray Marching</div>
+      <h3>Physically-Based Rendering. Ray Marching — Part 1</h3>
+      <p>Ray tracing from first principles: signed distance functions, sphere tracing, normals from gradients, a first lighting model — ending with a believable render built entirely in a fragment shader.</p>
+      <div class="li-chips">
+        <span class="li-chip">GLSL</span><span class="li-chip">SDF</span><span class="li-chip">Ray Marching</span>
+      </div>
+      <div class="li-foot">
+        <span class="li-lbl">Habr · RU</span>
+        <span class="li-arr">↗</span>
+      </div>
+    </a>
+    <a href="https://habr.com/en/companies/constanta/articles/684016/" class="li-card" target="_blank">
+      <div class="li-tag">// Tutorial · PBR</div>
+      <h3>Physically-Based Rendering. Ray Marching — Part 2</h3>
+      <p>From a toy tracer to physically-based shading: reflections, refraction and material models — culminating in the soap-bubble render with thin-film interference.</p>
+      <div class="li-chips">
+        <span class="li-chip">GLSL</span><span class="li-chip">PBR</span><span class="li-chip">Optics</span>
+      </div>
+      <div class="li-foot">
+        <span class="li-lbl">Habr · RU</span>
+        <span class="li-arr">↗</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<hr class="div">
+
 <!-- TECH -->
 <section id="tech" class="sw">
-  <div class="s-label" data-n="08">Stack</div>
+  <div class="s-label" data-n="09">Stack</div>
   <h2 class="s-title">Technologies.</h2>
   <div class="tech-grid">
     <div class="tech-item"><span>C++ / C</span><small>Core</small></div>
